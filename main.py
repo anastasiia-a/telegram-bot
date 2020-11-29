@@ -1,8 +1,10 @@
-import config
-import telebot
+import datetime
 from telebot import *
 
-bot = telebot.TeleBot(config.token)
+import config
+
+
+bot = TeleBot(config.token)
 
 markup = types.ReplyKeyboardMarkup(row_width=2)
 info_btn = types.KeyboardButton('Информация')
@@ -25,6 +27,34 @@ def mess(message):
                                           'Адрес: ул. Политехническая, 29\n'
                                           'Телефон: 8-800-555-35-35\n'
                                           'Сайт: www.matchacafe.ru')
+
+    if message.text == "Бронирование":
+        img = open('static/plancafe.png', 'rb')
+
+        bot.send_message(message.chat.id, 'Карта нашего заведения\n')
+        bot.send_photo(message.chat.id, img)
+        markup2 = types.ReplyKeyboardMarkup(row_width=1)
+        today = types.KeyboardButton('Сегодня')
+        tom = types.KeyboardButton('Завтра')
+        day_after_tom = types.KeyboardButton('Послезавтра')
+        main_menu = types.KeyboardButton('Главное меню')
+        markup2.add(today, tom, day_after_tom, main_menu)
+        bot.send_message(message.chat.id, 'Выберите день\n', reply_markup=markup2)
+
+    if message.text == 'Главное меню':
+        bot.send_message(message.chat.id, 'Выберите новое действие\n', reply_markup=markup)
+
+    if message.text in ['Сегодня', 'Завтра', 'Послезавтра']:
+        markup3 = types.ReplyKeyboardMarkup(row_width=2)
+        time_18 = types.KeyboardButton('18:00')
+        time_19 = types.KeyboardButton('19:00')
+        time_20 = types.KeyboardButton('20:00')
+        time_21 = types.KeyboardButton('21:00')
+        time_22 = types.KeyboardButton('22:00')
+        time_23 = types.KeyboardButton('23:00')
+        main_menu = types.KeyboardButton('Главное меню')
+        markup3.add(time_18, time_19, time_20, time_21, time_22, time_23, main_menu)
+        bot.send_message(message.chat.id, 'Выберите время\n', reply_markup=markup3)
 
 
 if __name__ == '__main__':
