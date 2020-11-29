@@ -6,6 +6,7 @@ import config
 
 bot = TeleBot(config.token)
 
+'''Главное меню'''
 markup = types.ReplyKeyboardMarkup(row_width=2)
 info_btn = types.KeyboardButton('Информация')
 mail_btn = types.KeyboardButton('Рассылка')
@@ -17,20 +18,45 @@ markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    bot.send_message(message.chat.id, 'Добро пожаловать!', reply_markup=markup)
+    bot.send_message(message.chat.id, 'Добро пожаловать!\n', reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text'])
 def mess(message):
     if message.text == 'Информация':
-        bot.send_message(message.chat.id, 'Время работы:\nПн-Пт: 08:00 - 22:00\nСб-Вс: 09:00 - 22:00\n'
+        bot.send_message(message.chat.id, 'Время работы:\nПн-Пт: 08:00 - 01:00\nСб-Вс: 09:00 - 02:00\n'
                                           'Адрес: ул. Политехническая, 29\n'
                                           'Телефон: 8-800-555-35-35\n'
-                                          'Сайт: www.matchacafe.ru')
+                                          'Сайт: www.loveyousomatcha.ru')
         bot.send_location(message.chat.id, latitude=60.00729003, longitude=30.37286282)
 
+    if message.text == 'Рассылка':
+        pass
+
+    if message.text == 'Меню':
+        markup_menu = types.ReplyKeyboardMarkup(row_width=1)
+        main_menu = types.KeyboardButton('Главное меню')
+        main_dishes = types.KeyboardButton('Основные блюда')
+        dishes = types.KeyboardButton('Закуски')
+        drinks = types.KeyboardButton('Напитки')
+        markup_menu.add(main_dishes, dishes, drinks, main_menu)
+        bot.send_message(message.chat.id, 'Выберите категорию\n', reply_markup=markup_menu)
+
+    if message.text == 'Основные блюда':
+        with open('static/menu_1.pdf', 'rb') as file:
+            bot.send_document(message.chat.id, file)
+
+    if message.text == 'Закуски':
+        with open('static/menu_2.pdf', 'rb') as file:
+            bot.send_document(message.chat.id, file)
+
+    if message.text == 'Напитки':
+        with open('static/menu_3.pdf', 'rb') as file:
+            bot.send_document(message.chat.id, file)
+
+    '''Блок бронирования'''
     if message.text == "Бронирование":
-        img = open('static/plancafe.png', 'rb')
+        img = open('static/plancafe.JPG', 'rb')
 
         bot.send_message(message.chat.id, 'Карта нашего заведения\n')
         bot.send_photo(message.chat.id, img)
@@ -56,6 +82,9 @@ def mess(message):
         main_menu = types.KeyboardButton('Главное меню')
         markup3.add(time_18, time_19, time_20, time_21, time_22, time_23, main_menu)
         bot.send_message(message.chat.id, 'Выберите время\n', reply_markup=markup3)
+
+    if message.text == 'Игра':
+        pass
 
 
 if __name__ == '__main__':
