@@ -27,6 +27,7 @@ def mess(message):
                                           'Адрес: ул. Политехническая, 29\n'
                                           'Телефон: 8-800-555-35-35\n'
                                           'Сайт: www.matchacafe.ru')
+        bot.send_location(message.chat.id, latitude=60.00729003, longitude=30.37286282)
 
     if message.text == "Бронирование":
         img = open('static/plancafe.png', 'rb')
