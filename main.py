@@ -32,11 +32,13 @@ markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
 def handle_start_help(message):
     with connection.cursor() as cursor:
         chat_id = message.chat.id
-        user = "SELECT chat_id FROM chat WHERE chat_id = %d"
-        cursor.execute(user, chat_id)
-        if not cursor:
-            add_user = "INSERT INTO chat(chat_id) VALUES(%d)"
-            cursor.execute(add_user, chat_id)
+        user = "SELECT chat_id FROM chat"
+        cursor.execute(user)
+        result = [row['chat_id'] for row in cursor]
+        if chat_id not in result:
+            add_user = f"INSERT INTO chat(chat_id) VALUE({chat_id})"
+            cursor.execute(add_user)
+            connection.commit()
         bot.send_message(message.chat.id, 'Добро пожаловать!\n', reply_markup=markup)
 
 
