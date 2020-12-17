@@ -1,6 +1,7 @@
 import pymysql
 from pymysql.cursors import DictCursor
 from contextlib import closing
+import datetime
 
 import telebot
 from telebot import *
@@ -14,21 +15,6 @@ connection = pymysql.connect(
     charset='utf8mb4',
     cursorclass=DictCursor
 )
-print("connect successful!!")
-try:
-
-    with connection.cursor() as cursor:
-        # SQL
-        sql = "SELECT * FROM chat; "
-        cursor.execute(sql)
-
-        print("cursor.description: ", cursor.description)
-        for row in cursor:
-            print(row)
-
-finally:
-    # Закрыть соединение (Close connection).
-    connection.close()
 
 
 bot = telebot.TeleBot(config.token)
@@ -42,6 +28,12 @@ book_btn = types.KeyboardButton('Бронирование')
 game_btn = types.KeyboardButton('Игра')
 markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
 
+d_today = datetime.date.today()
+d_tomorrow = d_today + datetime.timedelta(days=1)
+d_day_after_tom = d_today + datetime.timedelta(days=2)
+booking_date = datetime.date.today();
+free_tables = [];
+
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
@@ -50,6 +42,9 @@ def handle_start_help(message):
 
 @bot.message_handler(content_types=['text'])
 def mess(message):
+    global booking_date
+    global free_tables
+
     if message.text == 'Информация':
         bot.send_message(message.chat.id, 'Время работы:\nПн-Пт: 08:00 - 01:00\nСб-Вс: 09:00 - 02:00\n'
                                           'Адрес: ул. Политехническая, 29\n'
@@ -88,9 +83,9 @@ def mess(message):
         bot.send_message(message.chat.id, 'Карта нашего заведения\n')
         bot.send_photo(message.chat.id, img)
         markup2 = types.ReplyKeyboardMarkup(row_width=1)
-        today = types.KeyboardButton('Сегодня')
-        tom = types.KeyboardButton('Завтра')
-        day_after_tom = types.KeyboardButton('Послезавтра')
+        today = types.KeyboardButton(str(d_today))
+        tom = types.KeyboardButton(str(d_tomorrow))
+        day_after_tom = types.KeyboardButton(str(d_day_after_tom))
         main_menu = types.KeyboardButton('Главное меню')
         markup2.add(today, tom, day_after_tom, main_menu)
         bot.send_message(message.chat.id, 'Выберите день\n', reply_markup=markup2)
@@ -98,7 +93,9 @@ def mess(message):
     if message.text == 'Главное меню':
         bot.send_message(message.chat.id, 'Выберите новое действие\n', reply_markup=markup)
 
-    if message.text in ['Сегодня', 'Завтра', 'Послезавтра']:
+    if message.text in [str(d_today), str(d_tomorrow), str(d_day_after_tom)]:
+
+        booking_date = message.text
         markup3 = types.ReplyKeyboardMarkup(row_width=2)
         time_18 = types.KeyboardButton('18:00')
         time_19 = types.KeyboardButton('19:00')
@@ -110,9 +107,35 @@ def mess(message):
         markup3.add(time_18, time_19, time_20, time_21, time_22, time_23, main_menu)
         bot.send_message(message.chat.id, 'Выберите время\n', reply_markup=markup3)
 
+    if message.text in ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00']:
+        time = message.text
+        year = int(booking_date[:4])
+        mounth = int(booking_date[5:7])
+        day = int(booking_date[8:])
+        date_time = datetime.datetime(year, mounth, day, int(time[:2]))
+        print(date_time)
+
+        bot.send_message(message.chat.id, 'Выберите свободный стол\n')
+
+        tables = [n for n in range(1, 30)]
+        with connection.cursor() as cursor:
+            sql = "SELECT reserve.table FROM reserve WHERE reserve.date=%s; "
+            cursor.execute(sql, str(date_time))
+
+            not_free = []
+            for row in cursor:
+                not_free.append(row['table'])
+            print(not_free)
+        free_tables = [n for n in tables if n not in not_free]
+        bot.send_message(message.chat.id, str(free_tables)[1:-1])
+
+
+    # if message.text == 'Выберите свободный стол':
+
     if message.text == 'Игра':
         pass
 
 
 if __name__ == '__main__':
      bot.polling(none_stop=True)
+     connection.close()
