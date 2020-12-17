@@ -1,3 +1,10 @@
+from random import sample
+from random import shuffle
+from telebot import *
+
+import csv
+import argparse
+
 
 class MainMenu:
     def start(self):
@@ -51,7 +58,28 @@ class Game:
         pass
 
     def get_questions(self):
-        pass
+
+        questions = []
+        with open('static/quiz.csv') as csv_file:
+            csv_reader = csv.reader(csv_file, delimiter=',')
+            line_count = 0
+            for row in csv_reader:
+                if line_count == 0:
+                    line_count += 1
+                else:
+                    ans = []
+                    num = 0
+                    for item in row:
+                        if num > 0:
+                            ans.append(item)
+                        num += 1
+
+                    q = {'question': row[0], 'answers': ans}
+                    questions.append(q)
+                    line_count += 1
+
+        shuffle(questions)
+        return questions
 
     def check_result(self):
         pass
