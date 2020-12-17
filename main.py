@@ -1,7 +1,34 @@
-from telebot import *
-import telebot
+import pymysql
+from pymysql.cursors import DictCursor
+from contextlib import closing
 
+import telebot
+from telebot import *
 import config
+
+connection = pymysql.connect(
+    host='localhost',
+    user='root',
+    password='',
+    db='bot',
+    charset='utf8mb4',
+    cursorclass=DictCursor
+)
+print("connect successful!!")
+try:
+
+    with connection.cursor() as cursor:
+        # SQL
+        sql = "SELECT * FROM chat; "
+        cursor.execute(sql)
+
+        print("cursor.description: ", cursor.description)
+        for row in cursor:
+            print(row)
+
+finally:
+    # Закрыть соединение (Close connection).
+    connection.close()
 
 
 bot = telebot.TeleBot(config.token)
