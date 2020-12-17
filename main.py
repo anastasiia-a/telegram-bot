@@ -1,10 +1,10 @@
-import datetime
 from telebot import *
+import telebot
 
 import config
 
 
-bot = TeleBot(config.token)
+bot = telebot.TeleBot(config.token)
 
 '''Главное меню'''
 markup = types.ReplyKeyboardMarkup(row_width=2)
