@@ -15,7 +15,7 @@ booking_date, date_time, free_tables = (0, 0, [])
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    main_menu_bot.start(message.chat.id)
+    main_menu_bot.start(message.chat.id, bot, telegram_bot.connection)
 
 
 @bot.message_handler(content_types=['text'])

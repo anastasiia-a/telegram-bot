@@ -34,15 +34,15 @@ class MainMenu(TelegramBot):
         game_btn = types.KeyboardButton('Игра')
         self.markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
 
-    def start(self, chat_id):
-        with self.connection.cursor() as cursor:
+    def start(self, chat_id, bot, connection):
+        with connection.cursor() as cursor:
             user = f"SELECT chat_id FROM chat WHERE chat_id = {chat_id}"
             cursor.execute(user)
             if not ([row for row in cursor]):
                 add_user = f"INSERT INTO chat (chat_id) VALUE ({chat_id})"
                 cursor.execute(add_user)
-                self.connection.commit()
-            self.bot.send_message(chat_id, 'Добро пожаловать!\n', reply_markup=self.markup)
+                connection.commit()
+            bot.send_message(chat_id, 'Добро пожаловать!\n', reply_markup=self.markup)
 
 
 class Information(TelegramBot):
