@@ -130,6 +130,8 @@ class Booking(TelegramBot):
                 not_free.append(row['table'])
             if message.text in list(map(str, not_free)):
                 self.bot.send_message(chat_id, 'К сожалению, ваш столик уже кто-то забронировал, выберите другой.\n')
+                tables = [table for table in range(1, 30) if table not in not_free]
+                self.bot.send_message(chat_id, str(tables)[1:-1])
             else:
                 add_booking = f"INSERT INTO reserve (reserve.table, reserve.date) VALUES ({int(message.text)}, %s)"
                 cursor.execute(add_booking, str(date_time))
