@@ -31,8 +31,9 @@ markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
 d_today = datetime.date.today()
 d_tomorrow = d_today + datetime.timedelta(days=1)
 d_day_after_tom = d_today + datetime.timedelta(days=2)
-booking_date = datetime.date.today();
-free_tables = [];
+booking_date = datetime.date.today()
+free_tables = []
+date_time = 0
 
 
 @bot.message_handler(commands=['start'])
@@ -44,6 +45,7 @@ def handle_start_help(message):
 def mess(message):
     global booking_date
     global free_tables
+    global date_time
 
     if message.text == 'Информация':
         bot.send_message(message.chat.id, 'Время работы:\nПн-Пт: 08:00 - 01:00\nСб-Вс: 09:00 - 02:00\n'
@@ -113,7 +115,6 @@ def mess(message):
         mounth = int(booking_date[5:7])
         day = int(booking_date[8:])
         date_time = datetime.datetime(year, mounth, day, int(time[:2]))
-        print(date_time)
 
         bot.send_message(message.chat.id, 'Выберите свободный стол\n')
 
@@ -125,15 +126,28 @@ def mess(message):
             not_free = []
             for row in cursor:
                 not_free.append(row['table'])
-            print(not_free)
         free_tables = [n for n in tables if n not in not_free]
         bot.send_message(message.chat.id, str(free_tables)[1:-1])
 
+    if message.text in list(map(str, free_tables)):
+        with connection.cursor() as cursor:
+            sql = "SELECT reserve.table FROM reserve WHERE reserve.date=%s; "
+            cursor.execute(sql, str(date_time))
 
-    # if message.text == 'Выберите свободный стол':
+            not_free = []
+            for row in cursor:
+                not_free.append(row['table'])
+            if message.text in list(map(str, not_free)):
+                bot.send_message(message.chat.id, 'К сожалению, ваш столик уже кто-то забронировал, выберите другой.\n')
+            else:
+                add_booking = f"INSERT INTO reserve (reserve.table, reserve.date) VALUES ({int(message.text)}, %s)"
+                cursor.execute(add_booking, str(date_time))
+                bot.send_message(message.chat.id, 'Бронь успешно завершена.\n', reply_markup=markup)
 
     if message.text == 'Игра':
         pass
+
+    connection.commit()
 
 
 if __name__ == '__main__':
