@@ -23,72 +23,66 @@ def mess(message):
     global booking_date
     global free_tables
     global date_time
-    '''
-    Информация
-    '''
+
     if message.text == 'Информация':
         information_bot.get_information(message.chat.id)
 
-    '''
-    Рассылка
-    '''
-    if message.text == 'Рассылка':
+    elif message.text == 'Рассылка':
         pass
 
-    '''
-    Меню
-    '''
-    if message.text == 'Меню':
+    elif message.text == 'Меню':
         menu_bot.get_menu(message.chat.id)
 
-    if message.text == 'Основные блюда':
+    elif message.text == 'Основные блюда':
         with open('static/menu_1.pdf', 'rb') as file:
             bot.send_document(message.chat.id, file)
 
-    if message.text == 'Закуски':
+    elif message.text == 'Закуски':
         with open('static/menu_2.pdf', 'rb') as file:
             bot.send_document(message.chat.id, file)
 
-    if message.text == 'Напитки':
+    elif message.text == 'Напитки':
         with open('static/menu_3.pdf', 'rb') as file:
             bot.send_document(message.chat.id, file)
 
-    '''
-    Бронирование
-    '''
-    if message.text == "Бронирование":
+    elif message.text == "Бронирование":
         booking_bot.show_map(message.chat.id)
         booking_bot.show_dates(message.chat.id)
 
-    if message.text in ['Назад', 'Главное меню']:
+    elif message.text in ['Назад', 'Главное меню']:
         bot.send_message(message.chat.id, 'Выберите новое действие\n',
                          reply_markup=main_menu_bot.markup)
 
-    if message.text in [str(telegram_bot.d_today),
+    elif message.text in [str(telegram_bot.d_today),
                         str(telegram_bot.d_tomorrow),
                         str(telegram_bot.d_day_after_tom)]:
 
         booking_date = message.text
         booking_bot.show_times(message.chat.id)
 
-    if message.text in ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00']:
-        time = message.text
-        year = int(booking_date[:4])
-        mounth = int(booking_date[5:7])
-        day = int(booking_date[8:])
-        date_time = datetime.datetime(year, mounth, day, int(time[:2]))
+    elif message.text in ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00']:
+        date_time = datetime.datetime(int(booking_date[:4]),
+                                      int(booking_date[5:7]),
+                                      int(booking_date[8:]),
+                                      int(message.text[:2]))
 
         free_tables = booking_bot.show_free_tables(date_time, message.chat.id)
 
-    if message.text in list(map(str, free_tables)):
+    elif message.text in list(map(str, free_tables)):
         booking_bot.do_reservation(date_time, message,
                                    main_menu_bot.markup, message.chat.id)
 
-    '''
-    Игра
-    '''
-    if message.text == 'Игра':
+    elif message.text == 'Игра':
         pass
+
+    else:
+        try:
+            int(message.text)
+            bot.send_message(message.chat.id,
+                             'Вы ввели некорректный номер либо этот '
+                             'столик уже занят, выберите другой.\n')
+        except ValueError:
+            bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
 
 if __name__ == '__main__':
