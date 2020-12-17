@@ -14,21 +14,6 @@ connection = pymysql.connect(
     charset='utf8mb4',
     cursorclass=DictCursor
 )
-print("connect successful!!")
-try:
-
-    with connection.cursor() as cursor:
-        # SQL
-        sql = "SELECT * FROM chat; "
-        cursor.execute(sql)
-
-        print("cursor.description: ", cursor.description)
-        for row in cursor:
-            print(row)
-
-finally:
-    # Закрыть соединение (Close connection).
-    connection.close()
 
 
 bot = telebot.TeleBot(config.token)
@@ -45,7 +30,14 @@ markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    bot.send_message(message.chat.id, 'Добро пожаловать!\n', reply_markup=markup)
+    with connection.cursor() as cursor:
+        chat_id = message.chat.id
+        user = "SELECT chat_id FROM chat WHERE chat_id = %d"
+        cursor.execute(user, chat_id)
+        if not cursor:
+            add_user = "INSERT INTO chat(chat_id) VALUES(%d)"
+            cursor.execute(add_user, chat_id)
+        bot.send_message(message.chat.id, 'Добро пожаловать!\n', reply_markup=markup)
 
 
 @bot.message_handler(content_types=['text'])
@@ -116,3 +108,5 @@ def mess(message):
 
 if __name__ == '__main__':
      bot.polling(none_stop=True)
+     connection.close()
+
