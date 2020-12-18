@@ -1,118 +1,97 @@
-import pymysql
-from pymysql.cursors import DictCursor
-from contextlib import closing
+import datetime
 
-import telebot
-from telebot import *
-import config
-
-connection = pymysql.connect(
-    host='localhost',
-    user='root',
-    password='',
-    db='bot',
-    charset='utf8mb4',
-    cursorclass=DictCursor
-)
-print("connect successful!!")
-try:
-
-    with connection.cursor() as cursor:
-        # SQL
-        sql = "SELECT * FROM chat; "
-        cursor.execute(sql)
-
-        print("cursor.description: ", cursor.description)
-        for row in cursor:
-            print(row)
-
-finally:
-    # Закрыть соединение (Close connection).
-    connection.close()
+from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information, Newsletter
 
 
-bot = telebot.TeleBot(config.token)
+telegram_bot = TelegramBot()
+menu_bot = Menu()
+main_menu_bot = MainMenu()
+booking_bot = Booking()
+information_bot = Information()
+newsletter = Newsletter()
+game_bot = Game()
 
-'''Главное меню'''
-markup = types.ReplyKeyboardMarkup(row_width=2)
-info_btn = types.KeyboardButton('Информация')
-mail_btn = types.KeyboardButton('Рассылка')
-menu_btn = types.KeyboardButton('Меню')
-book_btn = types.KeyboardButton('Бронирование')
-game_btn = types.KeyboardButton('Игра')
-markup.add(info_btn, mail_btn, menu_btn, book_btn, game_btn)
+bot = telegram_bot.bot
+booking_date, date_time, free_tables = (0, 0, [])
 
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    bot.send_message(message.chat.id, 'Добро пожаловать!\n', reply_markup=markup)
+    main_menu_bot.start(message.chat.id, bot, telegram_bot.connection)
 
 
 @bot.message_handler(content_types=['text'])
 def mess(message):
+    global booking_date
+    global free_tables
+    global date_time
+
     if message.text == 'Информация':
-        bot.send_message(message.chat.id, 'Время работы:\nПн-Пт: 08:00 - 01:00\nСб-Вс: 09:00 - 02:00\n'
-                                          'Адрес: ул. Политехническая, 29\n'
-                                          'Телефон: 8-800-555-35-35\n'
-                                          'Сайт: www.loveyousomatcha.ru')
-        bot.send_location(message.chat.id, latitude=60.00729003, longitude=30.37286282)
+        information_bot.get_information(message.chat.id)
 
-    if message.text == 'Рассылка':
-        pass
+    elif message.text == 'Рассылка':
+        newsletter.check_subscription(message.chat.id)
 
-    if message.text == 'Меню':
-        markup_menu = types.ReplyKeyboardMarkup(row_width=1)
-        main_menu = types.KeyboardButton('Главное меню')
-        main_dishes = types.KeyboardButton('Основные блюда')
-        dishes = types.KeyboardButton('Закуски')
-        drinks = types.KeyboardButton('Напитки')
-        markup_menu.add(main_dishes, dishes, drinks, main_menu)
-        bot.send_message(message.chat.id, 'Выберите категорию\n', reply_markup=markup_menu)
+    elif message.text == 'Подписаться на рассылку':
+        newsletter.change_subscription(message.chat.id)
 
-    if message.text == 'Основные блюда':
+    elif message.text == 'Отписаться от рассылки':
+        newsletter.change_subscription(message.chat.id)
+
+    elif message.text == 'Меню':
+        menu_bot.get_menu(message.chat.id)
+
+    elif message.text == 'Основные блюда':
         with open('static/menu_1.pdf', 'rb') as file:
             bot.send_document(message.chat.id, file)
 
-    if message.text == 'Закуски':
+    elif message.text == 'Закуски':
         with open('static/menu_2.pdf', 'rb') as file:
             bot.send_document(message.chat.id, file)
 
-    if message.text == 'Напитки':
+    elif message.text == 'Напитки':
         with open('static/menu_3.pdf', 'rb') as file:
             bot.send_document(message.chat.id, file)
 
-    '''Блок бронирования'''
-    if message.text == "Бронирование":
-        img = open('static/plancafe.JPG', 'rb')
+    elif message.text == "Бронирование":
+        booking_bot.show_map(message.chat.id)
+        booking_bot.show_dates(message.chat.id)
 
-        bot.send_message(message.chat.id, 'Карта нашего заведения\n')
-        bot.send_photo(message.chat.id, img)
-        markup2 = types.ReplyKeyboardMarkup(row_width=1)
-        today = types.KeyboardButton('Сегодня')
-        tom = types.KeyboardButton('Завтра')
-        day_after_tom = types.KeyboardButton('Послезавтра')
-        main_menu = types.KeyboardButton('Главное меню')
-        markup2.add(today, tom, day_after_tom, main_menu)
-        bot.send_message(message.chat.id, 'Выберите день\n', reply_markup=markup2)
+    elif message.text in ['Назад', 'Главное меню']:
+        bot.send_message(message.chat.id, 'Выберите новое действие\n',
+                         reply_markup=main_menu_bot.markup)
 
-    if message.text == 'Главное меню':
-        bot.send_message(message.chat.id, 'Выберите новое действие\n', reply_markup=markup)
+    elif message.text in [str(telegram_bot.d_today),
+                        str(telegram_bot.d_tomorrow),
+                        str(telegram_bot.d_day_after_tom)]:
 
-    if message.text in ['Сегодня', 'Завтра', 'Послезавтра']:
-        markup3 = types.ReplyKeyboardMarkup(row_width=2)
-        time_18 = types.KeyboardButton('18:00')
-        time_19 = types.KeyboardButton('19:00')
-        time_20 = types.KeyboardButton('20:00')
-        time_21 = types.KeyboardButton('21:00')
-        time_22 = types.KeyboardButton('22:00')
-        time_23 = types.KeyboardButton('23:00')
-        main_menu = types.KeyboardButton('Главное меню')
-        markup3.add(time_18, time_19, time_20, time_21, time_22, time_23, main_menu)
-        bot.send_message(message.chat.id, 'Выберите время\n', reply_markup=markup3)
+        booking_date = message.text
+        booking_bot.show_times(message.chat.id)
 
-    if message.text == 'Игра':
-        pass
+    elif message.text in ['18:00', '19:00', '20:00', '21:00', '22:00', '23:00']:
+        date_time = datetime.datetime(int(booking_date[:4]),
+                                      int(booking_date[5:7]),
+                                      int(booking_date[8:]),
+                                      int(message.text[:2]))
+
+        free_tables = booking_bot.show_free_tables(date_time, message.chat.id)
+
+    elif message.text in list(map(str, free_tables)):
+        booking_bot.do_reservation(date_time, message,
+                                   main_menu_bot.markup, message.chat.id)
+
+    elif message.text == 'Игра':
+        game_bot.start_game(message)
+
+    else:
+        try:
+            int(message.text)
+            bot.send_message(message.chat.id,
+                             'Вы ввели некорректный номер либо этот '
+                             'столик уже занят, выберите другой.\n')
+        except ValueError:
+            bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
 
 if __name__ == '__main__':
-     bot.polling(none_stop=True)
+    bot.polling(none_stop=True)
