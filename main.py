@@ -1,6 +1,6 @@
 import datetime
 
-from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information
+from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information, Newsletter
 
 
 telegram_bot = TelegramBot()
@@ -8,6 +8,7 @@ menu_bot = Menu()
 main_menu_bot = MainMenu()
 booking_bot = Booking()
 information_bot = Information()
+newsletter = Newsletter()
 
 bot = telegram_bot.bot
 booking_date, date_time, free_tables = (0, 0, [])
@@ -28,7 +29,13 @@ def mess(message):
         information_bot.get_information(message.chat.id)
 
     elif message.text == 'Рассылка':
-        pass
+        newsletter.check_subscription(message.chat.id)
+
+    elif message.text == 'Подписаться на рассылку':
+        newsletter.change_subscription(message.chat.id)
+
+    elif message.text == 'Отписаться от рассылки':
+        newsletter.change_subscription(message.chat.id)
 
     elif message.text == 'Меню':
         menu_bot.get_menu(message.chat.id)

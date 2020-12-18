@@ -54,11 +54,59 @@ class Information(TelegramBot):
         self.bot.send_location(chat_id, latitude=60.00729003, longitude=30.37286282)
 
 
-class Newsletter:
-    def check_subscription(self):
-        pass
+class Newsletter(TelegramBot):
+    def check_subscription(self, chat_id):
+        with self.connection.cursor() as cursor:
+            query = f"SELECT subscribe FROM chat WHERE chat_id = {chat_id}"
+            cursor.execute(query)
+            subscription = cursor.fetchone()
+            if subscription['subscribe'] == 'no':
+                markup_newsletter = types.ReplyKeyboardMarkup(row_width=1)
+                main_menu = types.KeyboardButton('Назад')
+                subscription = types.KeyboardButton('Подписаться на рассылку')
+                markup_newsletter.add(subscription, main_menu)
+                self.bot.send_message(chat_id, 'Подписавшись на рассылку, Вы будете получать актуальные новости об '
+                                               'акциях и других предложениях нашего заведения\n',
+                                      reply_markup=markup_newsletter)
+            else:
+                markup_newsletter = types.ReplyKeyboardMarkup(row_width=1)
+                main_menu = types.KeyboardButton('Назад')
+                subscription = types.KeyboardButton('Отписаться от рассылки')
+                markup_newsletter.add(subscription, main_menu)
+                self.bot.send_message(chat_id, 'Отписавшись от рассылки, Вы перестанете получать актуальные '
+                                               'новости об акциях и других предложениях нашего заведения\n',
+                                      reply_markup=markup_newsletter)
 
-    def change_subscription(self):
+    def change_subscription(self, chat_id):
+        with self.connection.cursor() as cursor:
+            query = f"SELECT subscribe FROM chat WHERE chat_id = {chat_id}"
+            cursor.execute(query)
+            subscription = cursor.fetchone()
+            if subscription['subscribe'] == 'no':
+                change_subs = f"UPDATE chat SET subscribe = 'yes' WHERE chat_id = {chat_id}"
+                cursor.execute(change_subs)
+                self.connection.commit()
+                markup_newsletter = types.ReplyKeyboardMarkup(row_width=1)
+                main_menu = types.KeyboardButton('Назад')
+                subscription = types.KeyboardButton('Отписаться от рассылки')
+                markup_newsletter.add(subscription, main_menu)
+                self.bot.send_message(chat_id, 'Вы успешно подписаны на рассылку новостей и акций нашего заведения. '
+                                               'Если хотите ее отменить, нажмите на кнопку "Отменить рассылку”\n',
+                                      reply_markup=markup_newsletter)
+            elif subscription['subscribe'] == 'yes':
+                change_subs = f"UPDATE chat SET subscribe = 'no' WHERE chat_id = {chat_id}"
+                cursor.execute(change_subs)
+                self.connection.commit()
+                markup_newsletter = types.ReplyKeyboardMarkup(row_width=1)
+                main_menu = types.KeyboardButton('Назад')
+                subscription = types.KeyboardButton('Подписаться на рассылку')
+                markup_newsletter.add(subscription, main_menu)
+                self.bot.send_message(chat_id, 'Подписка на новости и акции нашего заведения отменена. '
+                                               'Если вы хотите вернуть подписку, нажмите на кнопку '
+                                               '"Подписаться на рассылку"\n',
+                                      reply_markup=markup_newsletter)
+
+    def send_newsletter(self):
         pass
 
 
