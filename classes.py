@@ -199,14 +199,19 @@ class Game(TelegramBot):
     проверка, может ли пользователь в текущее время начать игру
     (мб еще не прошел месяц с последней попытки)
     '''
-    def check_user(self):
+    def check_user(self, chat_id):
+        markup_game = types.ReplyKeyboardMarkup(row_width=1)
+        main_menu = types.KeyboardButton('Назад')
+        subscription = types.KeyboardButton('Начать')
+        markup_game.add(subscription, main_menu)
+        self.bot.send_message(chat_id, 'Привет! Хочешь получить скидку в нашем заведении или бесплатный напиток из меню? У тебя есть все шансы! '
+                              'Ответь правильно, как минимум, на 8 вопросов из 10 и получи уникальный промокод, с которым ты сможешь сразу же '
+                              'прийти к нам и забрать свой выигрыш или же покушать/выпить с приятной скидкой. Для того, чтобы проверить свои '
+                              'знания нажми кнопку “начать”\n\n',
+                              reply_markup=markup_game)
         pass
 
     def start_game(self, message):
-        main_menu = types.KeyboardButton('Назад')
-        subscription = types.KeyboardButton('Начать')
-        markup_game = types.ReplyKeyboardMarkup(row_width=1)
-        markup_game.add(subscription, main_menu)
         questions = self.get_questions()
         numbering = "1234"
         score = 0
@@ -279,7 +284,4 @@ class Game(TelegramBot):
 
     def check_result(self, questions, chat_id):
 
-       # print("\n\nYou got", score, "out of", total)
-        #percentage = (score / total) * 100
-        #print(f'{percentage}%')
         pass
