@@ -95,37 +95,33 @@ def mess(message):
             bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
 
-'''отправка рассылки через schedule /не работает/'''
-# schedule.every().minute.at(":17").do(newsletter.send_newsletter)
-#
-#
-# class ScheduleMessage:
-#     @staticmethod
-#     def try_send_schedule():
-#         while True:
-#             schedule.run_pending()
-#             time.sleep(1)
-#
-#     @staticmethod
-#     def start_process():
-#         p1 = Process(target=ScheduleMessage.try_send_schedule(), args=())
-#         p1.start()
-#
-#
-# schedule_message = ScheduleMessage()
+# для проверки работы рассылки сообщения отправляются каждую минуту
+schedule.every().minute.at(":17").do(newsletter.send_newsletter)
 
-'''отправка рассылки через сравнение даты в функции /тоже не работает :(((/'''
-# p1 = Process(target=newsletter.send_newsletter, args=())
-# p1.start()
+# можно, к примеру, отправлять рассылку каждый понедельник в 12:00
+# schedule.every().monday.at("12:00").do(newsletter.send_newsletter)
+
+
+class ScheduleMessage:
+    @staticmethod
+    def try_send_schedule():
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+    @staticmethod
+    def start_process():
+        p1 = Process(target=ScheduleMessage.try_send_schedule, args=())
+        p1.start()
+
+
+schedule_message = ScheduleMessage()
 
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
-    # while True:
-    #     try:
-    #         bot.polling(none_stop=True)
-    #     except Exception as e:
-    #         print(e)
-    #         # повторяем через 15 секунд в случае недоступности сервера Telegram
-    #         time.sleep(15)
-
+    ScheduleMessage.start_process()
+    try:
+        bot.polling(none_stop=True)
+    except Exception as e:
+        print(e)
+        time.sleep(15)

@@ -109,27 +109,17 @@ class Newsletter(TelegramBot):
 
     def send_newsletter(self):
         pass
-        # with self.connection.cursor() as cursor:
-        #     list = ['акция1', 'акция2', 'акция3', 'акция4', 'акция5']
-        #     newsletter = random.choice(list)
-        #     query = f"SELECT chat_id FROM chat WHERE subscribe = 'yes'"
-        #     cursor.execute(query)
-        #     users = cursor.fetchall()
-        #     for user in users:
-        #         try:
-        #             self.bot.send_message(user, newsletter)
-        #         except:
-        #             print('Не удалось отправить сообщению пользователю :', user)
-
-            # while True:
-            #     # if self.d_today.day == 1:
-            #     if datetime.datetime.now().second == 30:
-            #         for user in users:
-            #             try:
-            #                 self.bot.send_message(user, newsletter)
-            #             except:
-            #                 print('Не удалось отправить сообщению пользователю :', user)
-            #     time.sleep(60)
+        with self.connection.cursor() as cursor:
+            list = ['акция1', 'акция2', 'акция3', 'акция4', 'акция5']
+            newsletter = random.choice(list)
+            query = f"SELECT chat_id FROM chat WHERE subscribe = 'yes'"
+            cursor.execute(query)
+            users = cursor.fetchall()
+            for user in users:
+                try:
+                    self.bot.send_message(user['chat_id'], newsletter)
+                except:
+                    print('Не удалось отправить сообщению пользователю :', user)
 
 
 class Menu(TelegramBot):
