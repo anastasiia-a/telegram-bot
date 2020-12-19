@@ -35,6 +35,9 @@ def mess(message):
     elif message.text == 'Подписаться на рассылку':
         newsletter.change_subscription(message.chat.id)
 
+    elif message.text == 'Начать':
+        game_bot.start_game(message)
+
     elif message.text == 'Отписаться от рассылки':
         newsletter.change_subscription(message.chat.id)
 
@@ -81,6 +84,11 @@ def mess(message):
                                    main_menu_bot.markup, message.chat.id)
 
     elif message.text == 'Игра':
+        bot.send_message(message.chat.id,
+                              'Привет! Хочешь получить скидку в нашем заведении или бесплатный напиток из меню? У тебя есть все шансы! '
+                              'Ответь правильно, как минимум, на 8 вопросов из 10 и получи уникальный промокод, с которым ты сможешь сразу же '
+                              'прийти к нам и забрать свой выигрыш или же покушать/выпить с приятной скидкой. Для того, чтобы проверить свои '
+                              'знания нажми кнопку “начать”\n\n')
         game_bot.start_game(message)
 
     else:

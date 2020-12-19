@@ -5,7 +5,9 @@ from telebot import *
 from random import sample
 from random import shuffle
 from colorama import Fore, Back, Style, init
+
 import csv
+from csv import *
 import argparse
 
 import config
@@ -17,7 +19,7 @@ class TelegramBot:
         self.connection = pymysql.connect(
             host='localhost',
             user='root',
-            password='',
+            password='root',
             db='bot',
             charset='utf8mb4',
             cursorclass=DictCursor
@@ -201,6 +203,10 @@ class Game(TelegramBot):
         pass
 
     def start_game(self, message):
+        main_menu = types.KeyboardButton('Назад')
+        subscription = types.KeyboardButton('Начать')
+        markup_game = types.ReplyKeyboardMarkup(row_width=1)
+        markup_game.add(subscription, main_menu)
         questions = self.get_questions()
         numbering = "1234"
         score = 0
@@ -213,7 +219,10 @@ class Game(TelegramBot):
             total = numQuestions
         text = Style.BRIGHT + "random " + Style.RESET_ALL
         self.bot.send_message(chat_id,
-                              'Привет! Хочешь получить скидку в нашем заведении или бесплатный напиток из меню? У тебя есть все шансы! Ответь правильно, как минимум, на 8 вопросов из 10 и получи уникальный промокод, с которым ты сможешь сразу же прийти к нам и забрать свой выигрыш или же покушать/выпить с приятной скидкой. Для того, чтобы проверить свои знания нажми кнопку “начать”\n\n')
+                              'Привет! Хочешь получить скидку в нашем заведении или бесплатный напиток из меню? У тебя есть все шансы! '
+                              'Ответь правильно, как минимум, на 8 вопросов из 10 и получи уникальный промокод, с которым ты сможешь сразу же '
+                              'прийти к нам и забрать свой выигрыш или же покушать/выпить с приятной скидкой. Для того, чтобы проверить свои '
+                              'знания нажми кнопку “начать”\n\n')
         for question in questions:
             if qNum < numQuestions:
                 qNum += 1
@@ -247,7 +256,7 @@ class Game(TelegramBot):
 
     def get_questions(self):
         questions = []
-        with open('static/quiz.csv') as csv_file:
+        with open('static/quiz.csv', encoding='utf-8') as csv_file:
             csv_reader = csv.reader(csv_file, delimiter=',')
             line_count = 0
             for row in csv_reader:
