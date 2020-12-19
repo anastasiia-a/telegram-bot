@@ -1,4 +1,7 @@
 import datetime
+import schedule
+import time
+from multiprocessing.context import Process
 
 from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information, Newsletter
 
@@ -92,5 +95,33 @@ def mess(message):
             bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
 
+# для проверки работы рассылки сообщения отправляются каждую минуту
+schedule.every().minute.at(":17").do(newsletter.send_newsletter)
+
+# можно, к примеру, отправлять рассылку каждый понедельник в 12:00
+# schedule.every().monday.at("12:00").do(newsletter.send_newsletter)
+
+
+class ScheduleMessage:
+    @staticmethod
+    def try_send_schedule():
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+    @staticmethod
+    def start_process():
+        p1 = Process(target=ScheduleMessage.try_send_schedule, args=())
+        p1.start()
+
+
+schedule_message = ScheduleMessage()
+
+
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
+    ScheduleMessage.start_process()
+    try:
+        bot.polling(none_stop=True)
+    except Exception as e:
+        print(e)
+        time.sleep(15)
