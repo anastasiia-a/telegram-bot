@@ -121,7 +121,7 @@ class Newsletter(TelegramBot):
         pass
         with self.connection.cursor() as cursor:
             list = ['акция1', 'акция2', 'акция3', 'акция4', 'акция5']
-            newsletter = random.choice(list)
+            newsletter = choice(list)
             query = f"SELECT chat_id FROM chat WHERE subscribe = 'yes'"
             cursor.execute(query)
             users = cursor.fetchall()

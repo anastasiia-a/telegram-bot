@@ -75,8 +75,8 @@ def mess(message):
                 game_bot.check_result(message.chat.id, score)
                 questions.clear()
                 isGame = False
-
-        newsletter.check_subscription(message.chat.id)
+        else:
+             newsletter.check_subscription(message.chat.id)
 
     elif message.text == 'Подписаться на рассылку':
         newsletter.change_subscription(message.chat.id)
@@ -157,14 +157,7 @@ def print_question(chat_id, question):
         i += 1
         pass
 
-    else:
-        try:
-            int(message.text)
-            bot.send_message(message.chat.id,
-                             'Вы ввели некорректный номер либо этот '
-                             'столик уже занят, выберите другой.\n')
-        except ValueError:
-            bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
+
 
 
 # для проверки работы рассылки сообщения отправляются каждую минуту
