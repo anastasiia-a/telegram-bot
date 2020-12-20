@@ -19,7 +19,7 @@ class TelegramBot:
         self.connection = pymysql.connect(
             host='localhost',
             user='root',
-            password='root',
+            password='',
             db='bot',
             charset='utf8mb4',
             cursorclass=DictCursor
@@ -209,55 +209,28 @@ class Game(TelegramBot):
                               'прийти к нам и забрать свой выигрыш или же покушать/выпить с приятной скидкой. Для того, чтобы проверить свои '
                               'знания нажми кнопку “начать”\n\n',
                               reply_markup=markup_game)
-        pass
 
-    def start_game(self, message):
-        questions = self.get_questions()
+    def start_game(self, message, correctAnsw,  question, qNum):
+
         numbering = "1234"
         score = 0
-        qNum = 0
-        numQuestions = 10
         chat_id = message.chat.id
-        if (numQuestions > len(questions)):
-            total = len(questions)
-        else:
-            total = numQuestions
-        text = Style.BRIGHT + "random " + Style.RESET_ALL
-        self.bot.send_message(chat_id,
-                              'Привет! Хочешь получить скидку в нашем заведении или бесплатный напиток из меню? У тебя есть все шансы! '
-                              'Ответь правильно, как минимум, на 8 вопросов из 10 и получи уникальный промокод, с которым ты сможешь сразу же '
-                              'прийти к нам и забрать свой выигрыш или же покушать/выпить с приятной скидкой. Для того, чтобы проверить свои '
-                              'знания нажми кнопку “начать”\n\n')
-        for question in questions:
-            if qNum < numQuestions:
-                qNum += 1
-                correct = 0
-                self.bot.send_message(chat_id, f'Question {qNum}')
-                self.bot.send_message(chat_id, f'\n{question["question"]}\n')
-                i = 0
-                correctAnsw = question["answers"][0]
-                shuffle(question["answers"])
-                for answer in question["answers"]:
-                    self.bot.send_message(chat_id, numbering[i] + ". " + answer, "\n")
-                    if answer == correctAnsw:
-                        correct = i
-                    i += 1
-                while True:
-                    answer = message.text
-                    if (len(answer) == 1) and answer in numbering[0:i]:
-                        break
-                    if (answer == 'пропустить'):
-                        break
-                    else:
-                        self.bot.send_message(chat_id,
-                                              Fore.RED + "Упс! Ты ввел(а) некорректный ответ. Попробуй еще раз либо отправь “пропустить” и перейдешь к следующему вопросу”")
-                if answer == numbering[correct]:
-                    self.bot.send_message(chat_id, Fore.GREEN + Style.BRIGHT + "\nCorrect\n")
-                    score += 1
-                else:
-                    self.bot.send_message(chat_id, Fore.RED + Style.BRIGHT + f'\nIncorrect\n\n')
-            else:
+        correct = 0
+        i = 0
+
+        for answer in question["answers"]:
+            if answer == correctAnsw:
+                correct = i
+            i += 1
+        while True:
+            answer = message.text
+            if (len(answer) == 1) and answer in numbering[0:i]:
                 break
+            if (answer == 'пропустить'):
+                break
+        if answer == numbering[correct]:
+            score = 1
+        return score
 
     def get_questions(self):
         questions = []
@@ -280,8 +253,8 @@ class Game(TelegramBot):
                     line_count += 1
 
         shuffle(questions)
-        return questions
+        return questions[0:10]
 
-    def check_result(self, questions, chat_id):
+    def check_result(self, score):
 
         pass
