@@ -2,6 +2,10 @@ import datetime
 
 from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information, Newsletter
 from random import shuffle
+import schedule
+import time
+from multiprocessing.context import Process
+
 
 
 telegram_bot = TelegramBot()
@@ -10,6 +14,7 @@ main_menu_bot = MainMenu()
 booking_bot = Booking()
 information_bot = Information()
 newsletter = Newsletter()
+
 game_bot = Game()
 qNum = 0
 correctAnsw = ''
@@ -31,6 +36,7 @@ def mess(message):
     global booking_date
     global free_tables
     global date_time
+
     global qNum
     global score
     global correctAnsw
@@ -38,6 +44,7 @@ def mess(message):
     global questions
     global isGame
     questions = game_bot.get_questions()
+
 
     if message.text == 'Информация':
         information_bot.get_information(message.chat.id)
@@ -69,6 +76,10 @@ def mess(message):
                 questions.clear()
                 isGame = False
 
+        newsletter.check_subscription(message.chat.id)
+
+    elif message.text == 'Подписаться на рассылку':
+        newsletter.change_subscription(message.chat.id)
 
     elif message.text == 'Отписаться от рассылки':
         newsletter.change_subscription(message.chat.id)
@@ -144,7 +155,45 @@ def print_question(chat_id, question):
     for answer in question["answers"]:
         bot.send_message(chat_id, numbering[i] + ". " + answer, "\n")
         i += 1
+        pass
+
+    else:
+        try:
+            int(message.text)
+            bot.send_message(message.chat.id,
+                             'Вы ввели некорректный номер либо этот '
+                             'столик уже занят, выберите другой.\n')
+        except ValueError:
+            bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
+
+
+# для проверки работы рассылки сообщения отправляются каждую минуту
+schedule.every().minute.at(":17").do(newsletter.send_newsletter)
+
+# можно, к примеру, отправлять рассылку каждый понедельник в 12:00
+# schedule.every().monday.at("12:00").do(newsletter.send_newsletter)
+
+
+class ScheduleMessage:
+    @staticmethod
+    def try_send_schedule():
+        while True:
+            schedule.run_pending()
+            time.sleep(1)
+
+    @staticmethod
+    def start_process():
+        p1 = Process(target=ScheduleMessage.try_send_schedule, args=())
+        p1.start()
+
+
+schedule_message = ScheduleMessage()
 
 
 if __name__ == '__main__':
-    bot.polling(none_stop=True)
+    ScheduleMessage.start_process()
+    try:
+        bot.polling(none_stop=True)
+    except Exception as e:
+        print(e)
+        time.sleep(15)

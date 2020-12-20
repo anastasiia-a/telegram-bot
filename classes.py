@@ -2,6 +2,7 @@ import pymysql
 from pymysql.cursors import DictCursor
 import telebot
 from telebot import *
+
 from random import choice
 from string import ascii_uppercase
 from random import sample
@@ -14,6 +15,7 @@ import argparse
 
 import config
 import datetime
+
 
 
 class TelegramBot:
@@ -117,6 +119,94 @@ class Newsletter(TelegramBot):
 
     def send_newsletter(self):
         pass
+        with self.connection.cursor() as cursor:
+            list = ['акция1', 'акция2', 'акция3', 'акция4', 'акция5']
+            newsletter = random.choice(list)
+            query = f"SELECT chat_id FROM chat WHERE subscribe = 'yes'"
+            cursor.execute(query)
+            users = cursor.fetchall()
+            for user in users:
+                try:
+                    self.bot.send_message(user['chat_id'], newsletter)
+                except:
+                    print('Не удалось отправить сообщению пользователю :', user)
+
+
+class Menu(TelegramBot):
+    def get_menu(self, chat_id):
+        markup_menu = types.ReplyKeyboardMarkup(row_width=1)
+        main_menu = types.KeyboardButton('Назад')
+        main_dishes = types.KeyboardButton('Основные блюда')
+        dishes = types.KeyboardButton('Закуски')
+        drinks = types.KeyboardButton('Напитки')
+        markup_menu.add(main_dishes, dishes, drinks, main_menu)
+        self.bot.send_message(chat_id, 'Выберите категорию\n', reply_markup=markup_menu)
+
+
+class Booking(TelegramBot):
+    def show_map(self, chat_id):
+        img = open('static/plancafe.JPG', 'rb')
+        self.bot.send_message(chat_id, 'Карта нашего заведения\n')
+        self.bot.send_photo(chat_id, img)
+
+    def show_dates(self, chat_id):
+        markup_date = types.ReplyKeyboardMarkup(row_width=1)
+        today = types.KeyboardButton(str(self.d_today))
+        tomorrow = types.KeyboardButton(str(self.d_tomorrow))
+        day_after_tomorrow = types.KeyboardButton(str(self.d_day_after_tom))
+        main_menu = types.KeyboardButton('Главное меню')
+        markup_date.add(today, tomorrow, day_after_tomorrow, main_menu)
+        self.bot.send_message(chat_id, 'Выберите день\n', reply_markup=markup_date)
+
+    def show_times(self, chat_id):
+        markup = types.ReplyKeyboardMarkup(row_width=2)
+        time_18 = types.KeyboardButton('18:00')
+        time_19 = types.KeyboardButton('19:00')
+        time_20 = types.KeyboardButton('20:00')
+        time_21 = types.KeyboardButton('21:00')
+        time_22 = types.KeyboardButton('22:00')
+        time_23 = types.KeyboardButton('23:00')
+        main_menu = types.KeyboardButton('Главное меню')
+        markup.add(time_18, time_19, time_20, time_21, time_22, time_23, main_menu)
+        self.bot.send_message(chat_id, 'Выберите время\n', reply_markup=markup)
+
+    def show_free_tables(self, date_time, chat_id):
+        tables = [n for n in range(1, 30)]
+        with self.connection.cursor() as cursor:
+            sql = "SELECT reserve.table FROM reserve WHERE reserve.date=%s; "
+            cursor.execute(sql, str(date_time))
+
+            not_free = []
+            for row in cursor:
+                not_free.append(row['table'])
+        free_tables = [n for n in tables if n not in not_free]
+
+        if free_tables:
+            self.bot.send_message(chat_id, 'Выберите свободный стол\n')
+            self.bot.send_message(chat_id, str(free_tables)[1:-1])
+        else:
+            self.bot.send_message(chat_id, 'К сожалению, мест нет\n')
+
+        return free_tables
+
+    def do_reservation(self, date_time, message, markup, chat_id):
+
+        with self.connection.cursor() as cursor:
+            sql = "SELECT reserve.table FROM reserve WHERE reserve.date=%s; "
+            cursor.execute(sql, str(date_time))
+
+            not_free = []
+            for row in cursor:
+                not_free.append(row['table'])
+            if message.text in list(map(str, not_free)):
+                self.bot.send_message(chat_id, 'К сожалению, ваш столик уже кто-то забронировал, выберите другой.\n')
+                tables = [table for table in range(1, 30) if table not in not_free]
+                self.bot.send_message(chat_id, str(tables)[1:-1])
+            else:
+                add_booking = f"INSERT INTO reserve (reserve.table, reserve.date) VALUES ({int(message.text)}, %s)"
+                cursor.execute(add_booking, str(date_time))
+                self.connection.commit()
+                self.bot.send_message(chat_id, 'Бронь успешно завершена.\n', reply_markup=markup)
 
 
 class Menu(TelegramBot):
