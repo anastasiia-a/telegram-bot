@@ -2,6 +2,8 @@ import pymysql
 from pymysql.cursors import DictCursor
 import telebot
 from telebot import *
+from random import choice
+from string import ascii_uppercase
 from random import sample
 from random import shuffle
 from colorama import Fore, Back, Style, init
@@ -214,7 +216,6 @@ class Game(TelegramBot):
 
         numbering = "1234"
         score = 0
-        chat_id = message.chat.id
         correct = 0
         i = 0
 
@@ -255,6 +256,16 @@ class Game(TelegramBot):
         shuffle(questions)
         return questions[0:10]
 
-    def check_result(self, score):
-
-        pass
+    def check_result(self, chat_id, score):
+        prizes = ['Coca-cola 0.5л',
+                  'Скидку 10%',
+                  'Скидку 5%',
+                  'Латте 0.3л',
+                  'Чизкейк 300гр',
+                  'Сырные палочки 3шт']
+        if score<8:
+            self.bot.send_message(chat_id, 'К сожалению, твой результат ' + f'{score}' + ' из 10. '
+                                           'Попробуй еще раз, но уже в следующем месяце')
+        else:
+            self.bot.send_message(chat_id, 'Ты выиграл ' + choice(prizes) + '. Промокод: ' +
+                                  ''.join(choice(ascii_uppercase) for i in range(12)) + '. Покажи это сообщение своему официанту.')
