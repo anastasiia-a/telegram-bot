@@ -125,10 +125,10 @@ def do_question(question):
     return correctAnsw, question
 
 def print_question(chat_id, question):
-    bot.send_message(chat_id, f'Question {qNum}')
     bot.send_message(chat_id, f'\n{question["question"]}\n')
     numbering = "12345"
-    i = 0    for answer in question["answers"]:
+    i = 0
+    for answer in question["answers"]:
         bot.send_message(chat_id, numbering[i] + ". " + answer, "\n")
         i += 1
 
