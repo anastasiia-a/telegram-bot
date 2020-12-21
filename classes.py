@@ -245,7 +245,6 @@ class Game(TelegramBot):
                                       ' следующем календарном месяце\n\n',
                                       reply_markup=markup_game)
 
-    @staticmethod
     def start_game(self, message, correct_answer,  question, qNum):
         numbering = "1234"
         score = 0
@@ -265,7 +264,6 @@ class Game(TelegramBot):
             score = 1
         return score
 
-    @staticmethod
     def get_questions(self):
         questions = []
         with open('static/quiz.csv', encoding='utf-8') as csv_file:

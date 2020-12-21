@@ -25,6 +25,14 @@ question = ''
 score = 0
 isGame = False
 isBooking = False
+connection = pymysql.connect(
+                host='localhost',
+                user='root',
+                password='',
+                db='bot',
+                charset='utf8mb4',
+                cursorclass=DictCursor
+            )
 
 
 bot = telegram_bot.bot
@@ -33,7 +41,7 @@ booking_date, date_time, free_tables, questions = (0, 0, [], 0)
 
 @bot.message_handler(commands=['start'])
 def handle_start_help(message):
-    main_menu_bot.start(message.chat.id, bot, telegram_bot.connection)
+    main_menu_bot.start(message.chat.id, bot, connection)
 
 
 @bot.message_handler(content_types=['text'])
@@ -55,14 +63,6 @@ def mess(message):
 
     elif message.text == 'Начать':
         if not isGame:
-            connection = pymysql.connect(
-                host='localhost',
-                user='root',
-                password='',
-                db='bot',
-                charset='utf8mb4',
-                cursorclass=DictCursor
-            )
             with connection.cursor() as cursor:
                 query = f"SELECT * FROM game WHERE chat_id = {message.chat.id};"
                 cursor.execute(query)
@@ -96,17 +96,16 @@ def mess(message):
             bot.send_message(message.chat.id, 'Вы уже начали игру\n',
                              reply_markup=game_bot.markup)
 
-    elif message.text in ['1', '2', '3', '4', 'пропустить']:
-        if isGame:
-            qNum = qNum + 1
-            if qNum < 10:
-                score = score + game_bot.start_game(message, correct_answer, question, qNum)
-                correct_answer, question = do_question(questions[qNum])
-                print_question(message.chat.id, question)
-            else:
-                game_bot.check_result(message.chat.id, score)
-                questions.clear()
-                isGame = False
+    elif message.text in ['1', '2', '3', '4', 'пропустить'] and isGame:
+        qNum = qNum + 1
+        if qNum < 10:
+            score = score + game_bot.start_game(message, correct_answer, question, qNum)
+            correct_answer, question = do_question(questions[qNum])
+            print_question(message.chat.id, question)
+        else:
+            game_bot.check_result(message.chat.id, score)
+            questions.clear()
+            isGame = False
 
     elif message.text == 'Рассылка':
         isGame, isBooking = False, False
