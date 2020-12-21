@@ -6,17 +6,12 @@ from telebot import *
 
 from random import choice
 from string import ascii_uppercase
-from random import sample
 from random import shuffle
-from colorama import Fore, Back, Style, init
 
 import csv
-from csv import *
-import argparse
 
 import config
 import datetime
-
 
 
 class TelegramBot:
@@ -60,9 +55,9 @@ class MainMenu(TelegramBot):
 class Information(TelegramBot):
     def get_information(self, chat_id):
         self.bot.send_message(chat_id, 'Время работы:\nПн-Пт: 08:00 - 01:00\nСб-Вс: 09:00 - 02:00\n'
-                                          'Адрес: ул. Политехническая, 29\n'
-                                          'Телефон: 8-800-555-35-35\n'
-                                          'Сайт: www.loveyousomatcha.ru')
+                                       'Адрес: ул. Политехническая, 29\n'
+                                       'Телефон: 8-800-555-35-35\n'
+                                       'Сайт: www.loveyousomatcha.ru')
         self.bot.send_location(chat_id, latitude=60.00729003, longitude=30.37286282)
 
 
@@ -121,8 +116,19 @@ class Newsletter(TelegramBot):
     def send_newsletter(self):
         pass
         with self.connection.cursor() as cursor:
-            list = ['акция1', 'акция2', 'акция3', 'акция4', 'акция5']
-            newsletter = choice(list)
+            news = ['В нашем заведении действует скидка 30% на все сладкое меню\n'
+                    'каждый будний день c 20:00 до закрытия!\n',
+
+                    'Акция!\n'
+                    'При заказе 2 одинаковых позиций из нашего меню\n'
+                    '3 получите совершенно бесплатно!\n',
+
+                    'Каждый понедельник дарим скидку на завтраки до 12:00 10%\n',
+
+                    'Не забывай раз в месяц испытывать удачу в игре-викторине\n'
+                    'И бороться за приятный бонус в нашем заведении))\n',
+                    ]
+            newsletter = choice(news)
             query = f"SELECT chat_id FROM chat WHERE subscribe = 'yes'"
             cursor.execute(query)
             users = cursor.fetchall()
@@ -369,7 +375,7 @@ class Game(TelegramBot):
                   'Латте 0.3л',
                   'Чизкейк 300гр',
                   'Сырные палочки 3шт']
-        if score<8:
+        if score < 8:
             self.bot.send_message(chat_id, 'К сожалению, твой результат ' + f'{score}' + ' из 10. '
                                            'Попробуй еще раз, но уже в следующем месяце')
         else:
