@@ -1,1 +1,1 @@
-# telegram-bot
+# A simple telegram bot for a matcha cafe. 
