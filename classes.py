@@ -298,9 +298,6 @@ class Game(TelegramBot):
             query = f"SELECT * FROM game WHERE chat_id = {chat_id};"
             cursor.execute(query)
             result = cursor.fetchone()
-
-            print(result)
-            print(chat_id)
             self.connection.commit()
             if not result:
                 markup_game = types.ReplyKeyboardMarkup(row_width=1)
