@@ -245,6 +245,7 @@ class Game(TelegramBot):
                                       ' следующем календарном месяце\n\n',
                                       reply_markup=markup_game)
 
+
     def start_game(self, message, correct_answer,  question, qNum):
         numbering = "1234"
         score = 0
@@ -263,6 +264,7 @@ class Game(TelegramBot):
         if answer == numbering[correct]:
             score = 1
         return score
+
 
     def get_questions(self):
         questions = []
