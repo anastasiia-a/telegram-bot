@@ -95,7 +95,7 @@ DELIMITER ;;
 /*!50003 SET sql_mode              = 'ONLY_FULL_GROUP_BY,STRICT_TRANS_TABLES,NO_ZERO_IN_DATE,NO_ZERO_DATE,ERROR_FOR_DIVISION_BY_ZERO,NO_ENGINE_SUBSTITUTION' */ ;;
 /*!50003 SET @saved_time_zone      = @@time_zone */ ;;
 /*!50003 SET time_zone             = 'SYSTEM' */ ;;
-/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `game_check` ON SCHEDULE EVERY 1 MONTH STARTS '2020-12-21 15:55:00' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'reset table' DO truncate game */ ;;
+/*!50106 CREATE*/ /*!50117 DEFINER=`root`@`localhost`*/ /*!50106 EVENT `game_check` ON SCHEDULE EVERY 1 MONTH STARTS '2020-12-01 15:55:00' ON COMPLETION NOT PRESERVE ENABLE COMMENT 'reset table' DO truncate game */ ;;
 /*!50003 SET time_zone             = @saved_time_zone */ ;;
 /*!50003 SET sql_mode              = @saved_sql_mode */ ;;
 /*!50003 SET character_set_client  = @saved_cs_client */ ;;
