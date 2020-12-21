@@ -263,7 +263,7 @@ class Game(TelegramBot):
             answer = message.text
             if (len(answer) == 1) and answer in numbering[0:i]:
                 break
-            if answer == 'пропустить':
+            if answer == 'пропустить' or answer == 'Пропустить':
                 break
         if answer == numbering[correct]:
             score = 1
