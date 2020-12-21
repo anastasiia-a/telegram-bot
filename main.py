@@ -49,51 +49,48 @@ def mess(message):
     global isGame
     global isBooking
 
-
     if message.text == 'Информация':
         isGame, isBooking = False, False
         information_bot.get_information(message.chat.id)
 
     elif message.text == 'Начать':
         if not isGame:
-           connection = pymysql.connect(
+            connection = pymysql.connect(
                 host='localhost',
                 user='root',
                 password='',
                 db='bot',
                 charset='utf8mb4',
                 cursorclass=DictCursor
-           )
-           with connection.cursor() as cursor:
-               query = f"SELECT * FROM game WHERE chat_id = {message.chat.id};"
-               cursor.execute(query)
-               result = cursor.fetchone()
-               connection.commit()
-               if not result:
-                   isGame = True
-                   qNum = 0
-                   score = 0
-                   questions = game_bot.get_questions()
-                   now = datetime.datetime.now()
-                   with connection.cursor() as cursor:
-                       add_user = f"INSERT INTO game (game.chat_id, game.last_game) VALUES ({int(message.chat.id)}, %s);"
-                       connection.begin
-                       cursor.execute(add_user, str(now))
-                       connection.commit()
-                       connection.close()
+            )
+            with connection.cursor() as cursor:
+                query = f"SELECT * FROM game WHERE chat_id = {message.chat.id};"
+                cursor.execute(query)
+                result = cursor.fetchone()
+                connection.commit()
+                if not result:
+                    isGame = True
+                    qNum = 0
+                    score = 0
+                    questions = game_bot.get_questions()
+                    now = datetime.datetime.now()
+                    with connection.cursor() as cursor:
+                        add_user = f"INSERT INTO game (game.chat_id, game.last_game) VALUES ({int(message.chat.id)}, %s);"
+                        connection.begin
+                        cursor.execute(add_user, str(now))
+                        connection.commit()
+                        connection.close()
 
-                   correct_answer, question = do_question(questions[qNum])
-                   print_question(message.chat.id, question)
-
-               else:
-                   markup_game = types.ReplyKeyboardMarkup(row_width=1)
-                   main_menu = types.KeyboardButton('Назад')
-                   markup_game.add(main_menu)
-                   bot.send_message(message.chat.id,
-                                         'Ты пока не можешь сыграть еще раз, попробуй поиграть еще раз в'
-                                         ' следующем календарном месяце\n\n',
-                                         reply_markup=markup_game)
-
+                    correct_answer, question = do_question(questions[qNum])
+                    print_question(message.chat.id, question)
+                else:
+                    markup_game = types.ReplyKeyboardMarkup(row_width=1)
+                    main_menu = types.KeyboardButton('Назад')
+                    markup_game.add(main_menu)
+                    bot.send_message(message.chat.id,
+                                     'Ты пока не можешь сыграть еще раз, попробуй поиграть еще раз в'
+                                     ' следующем календарном месяце\n\n',
+                                     reply_markup=markup_game)
 
         else:
             bot.send_message(message.chat.id, 'Вы уже начали игру\n',
@@ -110,15 +107,13 @@ def mess(message):
                 game_bot.check_result(message.chat.id, score)
                 questions.clear()
                 isGame = False
-        else:
-             newsletter.check_subscription(message.chat.id)
 
     elif message.text == 'Рассылка':
-       isGame, isBooking = False, False
-       newsletter.check_subscription(message.chat.id)
+        isGame, isBooking = False, False
+        newsletter.check_subscription(message.chat.id)
 
     elif message.text == 'Подписаться на рассылку':
-       newsletter.change_subscription(message.chat.id)
+        newsletter.change_subscription(message.chat.id)
 
     elif message.text == 'Отписаться от рассылки':
         newsletter.change_subscription(message.chat.id)
@@ -176,9 +171,9 @@ def mess(message):
 
     elif isGame:
         bot.send_message(message.chat.id,
-                          "Упс! Ты ввел(а) некорректный ответ. "
-                          "Попробуй еще раз либо отправь “пропустить” и "
-                          "перейдешь к следующему вопросу”")
+                         "Упс! Ты ввел(а) некорректный ответ. "
+                         "Попробуй еще раз либо отправь “пропустить” и "
+                         "перейдешь к следующему вопросу”")
     elif isBooking:
         bot.send_message(message.chat.id,
                          'Вы ввели некорректный номер либо этот '
@@ -187,10 +182,12 @@ def mess(message):
     else:
         bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
+
 def do_question(some_question):
     cor_answer = some_question["answers"][0]
     shuffle(some_question["answers"])
     return cor_answer, some_question
+
 
 def print_question(chat_id, some_question):
     bot.send_message(chat_id, f'\n{some_question["question"]}\n')
@@ -201,10 +198,7 @@ def print_question(chat_id, some_question):
         i += 1
         pass
 
-# для проверки работы рассылки сообщения отправляются каждую минуту
-#schedule.every().minute.at(":17").do(newsletter.send_newsletter)
 
-# можно, к примеру, отправлять рассылку каждый понедельник в 12:00
 schedule.every().monday.at("12:00").do(newsletter.send_newsletter)
 
 
