@@ -139,7 +139,7 @@ def mess(message):
             bot.send_document(message.chat.id, file)
 
     elif message.text == "Бронирование":
-        isGame, isBooking = False, True
+        isGame, isBooking = False, False
         booking_bot.show_map(message.chat.id)
         booking_bot.show_dates(message.chat.id)
 
