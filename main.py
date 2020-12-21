@@ -108,9 +108,11 @@ def mess(message):
                 game_bot.check_result(message.chat.id, score)
                 questions.clear()
                 isGame = False
-        if isBooking:
+        elif isBooking:
             booking_bot.do_reservation(date_time, message,
-                                       main_menu_bot.markup, message.chat.id)
+                                       main_menu_bot.markup, message.chat.id, free_tables)
+        else:
+            bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
     elif message.text == 'Рассылка':
         isGame, isBooking = False, False
@@ -167,7 +169,7 @@ def mess(message):
     elif message.text in list(map(str, free_tables)) and isBooking:
         isBooking = False
         booking_bot.do_reservation(date_time, message,
-                                   main_menu_bot.markup, message.chat.id)
+                                   main_menu_bot.markup, message.chat.id, free_tables)
 
     elif message.text == 'Игра':
         isBooking = False

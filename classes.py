@@ -193,7 +193,7 @@ class Booking(TelegramBot):
 
         return free_tables
 
-    def do_reservation(self, date_time, message, markup, chat_id):
+    def do_reservation(self, date_time, message, markup, chat_id, free_tables):
 
         with self.connection.cursor() as cursor:
             sql = "SELECT reserve.table FROM reserve WHERE reserve.date=%s; "
@@ -202,10 +202,14 @@ class Booking(TelegramBot):
             not_free = []
             for row in cursor:
                 not_free.append(row['table'])
-            if message.text in list(map(str, not_free)):
+            if message.text in list(map(str, not_free)) and message.text in free_tables:
                 self.bot.send_message(chat_id, 'К сожалению, ваш столик уже кто-то забронировал, выберите другой.\n')
                 tables = [table for table in range(1, 30) if table not in not_free]
                 self.bot.send_message(chat_id, str(tables)[1:-1])
+            elif message.text in list(map(str, not_free)):
+                self.bot.send_message(message.chat.id,
+                                      'Вы ввели некорректный номер либо этот '
+                                      'столик уже занят, выберите другой.\n')
             else:
                 add_booking = f"INSERT INTO reserve (reserve.table, reserve.date) VALUES ({int(message.text)}, %s)"
                 cursor.execute(add_booking, str(date_time))
