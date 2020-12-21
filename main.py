@@ -1,15 +1,14 @@
 import datetime
 
 import pymysql
-from pymysql.cursors import DictCursor
-
-from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information, Newsletter
-from random import shuffle
 import schedule
 import time
+
+from pymysql.cursors import DictCursor
+from classes import TelegramBot, Menu, MainMenu, Game, Booking, Information, Newsletter
+from random import shuffle
 from telebot import *
 from multiprocessing.context import Process
-
 
 
 telegram_bot = TelegramBot()
@@ -21,14 +20,15 @@ newsletter = Newsletter()
 
 game_bot = Game()
 qNum = 0
-correctAnsw = ''
+correct_answer = ''
 question = ''
 score = 0
 isGame = False
+isBooking = False
 
 
 bot = telegram_bot.bot
-booking_date, date_time, free_tables = (0, 0, [])
+booking_date, date_time, free_tables, questions = (0, 0, [], 0)
 
 
 @bot.message_handler(commands=['start'])
@@ -44,19 +44,15 @@ def mess(message):
     global questions
     global qNum
     global score
-    global correctAnsw
+    global correct_answer
     global question
     global isGame
+    global isBooking
 
 
     if message.text == 'Информация':
+        isGame, isBooking = False, False
         information_bot.get_information(message.chat.id)
-
-    elif message.text == 'Рассылка':
-       newsletter.check_subscription(message.chat.id)
-
-    elif message.text == 'Подписаться на рассылку':
-       newsletter.change_subscription(message.chat.id)
 
     elif message.text == 'Начать':
         if not isGame:
@@ -86,7 +82,7 @@ def mess(message):
                        connection.commit()
                        connection.close()
 
-                   correctAnsw, question = do_question(questions[qNum])
+                   correct_answer, question = do_question(questions[qNum])
                    print_question(message.chat.id, question)
 
                else:
@@ -103,15 +99,12 @@ def mess(message):
             bot.send_message(message.chat.id, 'Вы уже начали игру\n',
                              reply_markup=game_bot.markup)
 
-
-
-
     elif message.text in ['1', '2', '3', '4', 'пропустить']:
         if isGame:
             qNum = qNum + 1
-            if qNum<10:
-                score = score + game_bot.start_game(message, correctAnsw, question, qNum)
-                correctAnsw, question = do_question(questions[qNum])
+            if qNum < 10:
+                score = score + game_bot.start_game(message, correct_answer, question, qNum)
+                correct_answer, question = do_question(questions[qNum])
                 print_question(message.chat.id, question)
             else:
                 game_bot.check_result(message.chat.id, score)
@@ -120,13 +113,18 @@ def mess(message):
         else:
              newsletter.check_subscription(message.chat.id)
 
+    elif message.text == 'Рассылка':
+       isGame, isBooking = False, False
+       newsletter.check_subscription(message.chat.id)
+
     elif message.text == 'Подписаться на рассылку':
-        newsletter.change_subscription(message.chat.id)
+       newsletter.change_subscription(message.chat.id)
 
     elif message.text == 'Отписаться от рассылки':
         newsletter.change_subscription(message.chat.id)
 
     elif message.text == 'Меню':
+        isGame, isBooking = False, False
         menu_bot.get_menu(message.chat.id)
 
     elif message.text == 'Основные блюда':
@@ -142,16 +140,18 @@ def mess(message):
             bot.send_document(message.chat.id, file)
 
     elif message.text == "Бронирование":
+        isGame, isBooking = False, False
         booking_bot.show_map(message.chat.id)
         booking_bot.show_dates(message.chat.id)
 
     elif message.text in ['Назад', 'Главное меню']:
+        isGame, isBooking = False, False
         bot.send_message(message.chat.id, 'Выберите новое действие\n',
                          reply_markup=main_menu_bot.markup)
 
     elif message.text in [str(telegram_bot.d_today),
-                        str(telegram_bot.d_tomorrow),
-                        str(telegram_bot.d_day_after_tom)]:
+                          str(telegram_bot.d_tomorrow),
+                          str(telegram_bot.d_day_after_tom)]:
 
         booking_date = message.text
         booking_bot.show_times(message.chat.id)
@@ -163,51 +163,49 @@ def mess(message):
                                       int(message.text[:2]))
 
         free_tables = booking_bot.show_free_tables(date_time, message.chat.id)
+        isBooking = True
 
     elif message.text in list(map(str, free_tables)):
         booking_bot.do_reservation(date_time, message,
                                    main_menu_bot.markup, message.chat.id)
 
     elif message.text == 'Игра':
+        isBooking = False
         isGame = False
         game_bot.check_user(message.chat.id)
 
+    elif isGame:
+        bot.send_message(message.chat.id,
+                          "Упс! Ты ввел(а) некорректный ответ. "
+                          "Попробуй еще раз либо отправь “пропустить” и "
+                          "перейдешь к следующему вопросу”")
+    elif isBooking:
+        bot.send_message(message.chat.id,
+                         'Вы ввели некорректный номер либо этот '
+                         'столик уже занят, выберите другой.\n')
+
     else:
-         if isGame:
-            bot.send_message(message.chat.id,
-                          "Упс! Ты ввел(а) некорректный ответ. Попробуй еще раз либо отправь “пропустить” и перейдешь к следующему вопросу”")
-         else:
-             try:
-                 int(message.text)
-                 bot.send_message(message.chat.id,
-                                  'Вы ввели некорректный номер либо этот '
-                                  'столик уже занят, выберите другой.\n')
-             except ValueError:
-                 bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
+        bot.send_message(message.chat.id, 'Нажмите кнопку!\n')
 
+def do_question(some_question):
+    cor_answer = some_question["answers"][0]
+    shuffle(some_question["answers"])
+    return cor_answer, some_question
 
-def do_question(question):
-    correctAnsw = question["answers"][0]
-    shuffle(question["answers"])
-    return correctAnsw, question
-
-def print_question(chat_id, question):
-    bot.send_message(chat_id, f'\n{question["question"]}\n')
+def print_question(chat_id, some_question):
+    bot.send_message(chat_id, f'\n{some_question["question"]}\n')
     numbering = "12345"
     i = 0
-    for answer in question["answers"]:
+    for answer in some_question["answers"]:
         bot.send_message(chat_id, numbering[i] + ". " + answer, "\n")
         i += 1
         pass
 
-
-
-
 # для проверки работы рассылки сообщения отправляются каждую минуту
-schedule.every().minute.at(":17").do(newsletter.send_newsletter)
+#schedule.every().minute.at(":17").do(newsletter.send_newsletter)
 
 # можно, к примеру, отправлять рассылку каждый понедельник в 12:00
-# schedule.every().monday.at("12:00").do(newsletter.send_newsletter)
+schedule.every().monday.at("12:00").do(newsletter.send_newsletter)
 
 
 class ScheduleMessage:
